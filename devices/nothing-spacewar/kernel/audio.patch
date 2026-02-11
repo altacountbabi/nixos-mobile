@@ -1,0 +1,154 @@
+From 51d4c82f15599614f25bac14a4addb2b51da76be Mon Sep 17 00:00:00 2001
+From: "Kurt Morris (AKA MasterOKhan)" <kurt.morris@me.com>
+Date: Fri, 18 Jul 2025 01:15:26 -0700
+Subject: [PATCH] Update sm7325-nothing-spacewar.dts
+
+---
+ .../boot/dts/qcom/sm7325-nothing-spacewar.dts | 119 +++++++++++++++---
+ 1 file changed, 102 insertions(+), 17 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/qcom/sm7325-nothing-spacewar.dts b/arch/arm64/boot/dts/qcom/sm7325-nothing-spacewar.dts
+index 4f08a2da631d3f..dc3e7fbc4526f5 100644
+--- a/arch/arm64/boot/dts/qcom/sm7325-nothing-spacewar.dts
++++ b/arch/arm64/boot/dts/qcom/sm7325-nothing-spacewar.dts
+@@ -380,6 +380,38 @@
+ 		regulator-always-on;
+ 		vin-supply = <&vph_pwr>;
+ 	};
++
++	vreg_s4b: regulator-s4b {
++		compatible = "regulator-fixed";
++		regulator-name = "vreg_s4b";
++		regulator-min-microvolt = <2850000>;
++		regulator-max-microvolt = <2850000>;
++		regulator-always-on;
++	};
++
++	vreg_l1b: regulator-l1b {
++		compatible = "regulator-fixed";
++		regulator-name = "vreg_l1b";
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <1800000>;
++		regulator-always-on;
++	};
++
++	vreg_l2b: regulator-l2b {
++		compatible = "regulator-fixed";
++		regulator-name = "vreg_l2b";
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <1800000>;
++		regulator-always-on;
++	};
++
++	vreg_l5b: regulator-l5b {
++		compatible = "regulator-fixed";
++		regulator-name = "vreg_l5b";
++		regulator-min-microvolt = <2850000>;
++		regulator-max-microvolt = <2850000>;
++		regulator-always-on;
++	};
+ };
+ 
+ &apps_rsc {
+@@ -1371,31 +1403,84 @@
+ 	pinctrl-0 = <&pri_mi2s_bck_active &pri_mi2s_din_active
+ 		     &pri_mi2s_dout_active &pri_mi2s_ws_active>;
+ 	pinctrl-1 = <&pri_mi2s_sleep>;
+-	pinctrl-names = "default",
+-			"sleep";
+-
+-	mm1-dai-link {
++	pinctrl-2 = <&lpass_tx_swr_clk &lpass_tx_swr_data>;
++	pinctrl-3 = <&lpass_rx_swr_clk &lpass_rx_swr_data>;
++	pinctrl-names = "default", "sleep", "swr-tx", "swr-rx";
++
++    audio-routing =
++	   /* Analog microphones */
++	   "AMIC1", "Analog Mic1",
++	   "Analog Mic1", "MIC BIAS1",
++	   "AMIC2", "Analog Mic2",
++	   "Analog Mic2", "MIC BIAS2",
++	   "AMIC3", "Analog Mic3",
++	   "Analog Mic3", "MIC BIAS3",
++	   "AMIC4", "Analog Mic4",
++	   "Analog Mic4", "MIC BIAS1",
++	   "AMIC5", "Analog Mic5",
++	   "Analog Mic5", "MIC BIAS2",
++    
++	   /* SWR ADC paths (Mic1,2,4,5) */
++	   "TX SWR_ADC0", "ADC1_OUTPUT",
++	   "TX SWR_ADC1", "ADC2_OUTPUT",
++	   "TX SWR_ADC4", "ADC3_OUTPUT",
++	   "TX SWR_ADC5", "ADC4_OUTPUT",
++    
++	   /* Headphones */
++	   "HPHL", "Headphones",
++	   "HPHR", "Headphones",
++	   "IN1_HPHL", "HPHL_OUT",
++	   "IN2_HPHR", "HPHR_OUT",
++    
++	   /* Speakers */
++	   "SpkrLeft IN", "SpkrLeft DAI",
++	   "SpkrRight IN", "SpkrRight DAI",
++	   "SpkrRight IN", "WSA_SPK2 OUT";
++
++	dai-link@0 {
+ 		link-name = "MultiMedia1";
++		cpu { sound-dai = <&q6asmdai MSM_FRONTEND_DAI_MULTIMEDIA1>; };
++	};
+ 
+-		cpu {
+-			sound-dai = <&q6asmdai MSM_FRONTEND_DAI_MULTIMEDIA1>;
++	dai-link@1 {
++		link-name = "Primary MI2S Playback";
++		cpu { sound-dai = <&q6afedai 1>; };
++		platform { sound-dai = <&q6routing>; };
++		codec {
++			sound-dai = <&tfa9873_l 0>, <&tfa9873_r 0>;
+ 		};
+ 	};
+ 
+-	i2s-dai-link {
+-		link-name = "I2S Playback";
++	dai-link@2 {
++		link-name = "WCD9385 RX Playback";
++		cpu { sound-dai = <&q6afedai 2>; };
++		platform { sound-dai = <&q6routing>; };
++		codec { sound-dai = <&wcd9385 0>; };
++	};
+ 
+-		cpu {
+-			sound-dai = <&q6afedai PRIMARY_MI2S_RX>;
+-		};
++	dai-link@3 {
++		link-name = "WCD9385 TX Capture";
++		cpu { sound-dai = <&q6afedai 3>; };
++		platform { sound-dai = <&q6routing>; };
++		codec { sound-dai = <&wcd9385 1>; };
++	};
+ 
+-		platform {
+-			sound-dai = <&q6routing>;
+-		};
++};
+ 
+-		codec {
+-			sound-dai = <&tfa9873_l 0>, <&tfa9873_r 0>;
+-		};
++&swr1 {
++	status = "okay";
++
++	wcd9385: codec@0 {
++		compatible = "qcom,wcd9385";
++		reg = <0>;
++		#sound-dai-cells = <1>;
++		clocks = <&rpmhcc RPMH_LN_BB_CLK2>;
++		clock-names = "mclk";
++		vdd-buck-supply = <&vreg_s4b>;
++		vdd-rxtx-supply = <&vreg_l2b>;
++		vdd-mic-bias-supply = <&vreg_l5b>;
++		vddio-supply = <&vreg_l1b>;
++		status = "okay";
+ 	};
+ };
+ 
