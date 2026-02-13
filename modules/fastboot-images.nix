@@ -26,7 +26,7 @@
         in
         self.lib.${localSystem}.bootimg {
           name = "fastboot-boot-image-${device.id}";
-          kernel = "${device.kernel}/${device.kernel.file}";
+          kernel = "${device.kernel}/${pkgs.stdenv.hostPlatform.linux-kernel.target}";
           initrd = "${config.system.build.initialRamdisk}/initrd";
 
           inherit cmdline;

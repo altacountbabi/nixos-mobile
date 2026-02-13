@@ -1,6 +1,11 @@
 {
   flake.nixosModules.default =
-    { config, lib, ... }:
+    {
+      config,
+      pkgs,
+      lib,
+      ...
+    }:
     let
       inherit (lib) mkOption mkEnableOption types;
     in
@@ -102,8 +107,7 @@
             device.firmware
           ];
 
-          # TODO: Fix kernel package
-          # boot.kernelPackages = pkgs.linuxPackagesFor device.kernel;
+          boot.kernelPackages = pkgs.linuxPackagesFor device.kernel;
         };
     };
 }
