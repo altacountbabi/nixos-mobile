@@ -6,7 +6,8 @@ in
 inputs.flake-parts.lib.mkTransposedPerSystemModule {
   name = "lib";
   option = mkOption {
-    type = types.lazyAttrsOf types.anything;
+    # Using `either` here allows us to have `lib.<system>.<anything>` and `lib.<anything>`
+    type = with types; either (lazyAttrsOf raw) raw;
     default = { };
     description = ''
       Libraries exported by flake.

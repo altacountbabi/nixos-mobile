@@ -187,7 +187,7 @@
         in
 
         # This `let` block allows us to have a self-reference to this derivation.
-        # We'll re-use this derivation inside passthru for normalizedConfig and menuconfig.
+        # We'll reuse this derivation inside passthru for normalizedConfig and menuconfig.
         let
           kernelDerivation = stdenv.mkDerivation (
             inputArgs
