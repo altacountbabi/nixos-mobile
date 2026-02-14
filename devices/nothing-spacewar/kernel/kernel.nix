@@ -11,8 +11,6 @@
           hash = "sha256-na+vg4v6jI3rtiPBnbCUDDlULDvNpDAyfyH9jAOLbdc=";
         };
 
-        configfile = ./config.aarch64;
-
         patches = [
           ./audio.patch
         ];

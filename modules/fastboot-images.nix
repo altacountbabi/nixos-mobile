@@ -12,12 +12,7 @@
       ...
     }:
     let
-      device =
-        config.mobile.devices
-        |> lib.filterAttrs (_: v: v.enable)
-        |> lib.mapAttrsToList (k: v: { id = k; } // v)
-        |> lib.head;
-      inherit (config.mobile) localSystem crossPkgs;
+      inherit (config.mobile) device localSystem crossPkgs;
     in
     {
       system.build.fastboot-boot-image =
@@ -26,7 +21,7 @@
         in
         self.lib.${localSystem}.bootimg {
           name = "fastboot-boot-image-${device.id}";
-          kernel = "${device.kernel}/${pkgs.stdenv.hostPlatform.linux-kernel.target}";
+          kernel = "${config.system.build.kernel}/${pkgs.stdenv.hostPlatform.linux-kernel.target}";
           initrd = "${config.system.build.initialRamdisk}/initrd";
 
           inherit cmdline;

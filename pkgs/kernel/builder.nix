@@ -125,7 +125,7 @@
 
               passthru =
                 let
-                  baseVersion = lib.head (lib.splitString "-rc" version);
+                  baseVersion = version |> lib.splitString "-rc" |> lib.head;
                 in
                 {
                   # Used by consumers of the kernel derivation to configure the build
