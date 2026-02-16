@@ -21,6 +21,10 @@
             autoResize = true;
           };
         };
+
+        boot.kernelParams = lib.mkBefore [
+          "root=\"LABEL=${config.mobile.rootfs.label}\""
+        ];
       };
     };
 }

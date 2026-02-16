@@ -1,6 +1,11 @@
 {
   flake.nixosModules.default =
-    { config, lib, ... }:
+    {
+      config,
+      pkgs,
+      lib,
+      ...
+    }:
     let
       inherit (lib) mkOption mkEnableOption types;
       deviceType = types.submodule {
@@ -18,21 +23,15 @@
           };
 
           # Packages
-          firmware = mkOption {
-            type = types.nullOr types.package;
-            default = null;
-            description = "Firmware package for the device";
-          };
-          enableFirmware = mkOption {
-            type = types.bool;
-            default = true;
-            description = "Automatically add the firmware to the system configuration";
-          };
-
           kernel = mkOption {
             type = types.nullOr types.package;
             default = null;
             description = "Linux kernel package for the device";
+          };
+          firmware = mkOption {
+            type = types.nullOr types.package;
+            default = null;
+            description = "Firmware package for the device";
           };
 
           bootimg = {
@@ -113,13 +112,26 @@
             }
           ];
 
-          hardware.firmware = lib.mkIf device.enableFirmware [
+          hardware.firmware = [
             device.firmware
           ];
 
           hardware.enableRedistributableFirmware = true;
 
-          boot.initrd.systemd.enable = true;
+          boot.initrd = {
+            systemd.enable = true;
+            systemd.tpm2.enable = false;
+            includeDefaultModules = false;
+          };
+
+          # Set up 32x64 font
+          console = {
+            earlySetup = true;
+            font = "spleen-16x32";
+            packages = with pkgs; [
+              spleen
+            ];
+          };
         };
     };
 }

@@ -5,7 +5,8 @@
       lib.buildKernel =
         let
           inherit (lib) optionalString;
-          inherit (pkgs) buildLinux dtbTool dtbTool-exynos;
+          inherit (pkgs) dtbTool dtbTool-exynos;
+          inherit (pkgs.linuxKernel) manualConfig;
 
           platform = pkgs.stdenv.hostPlatform;
 
@@ -16,6 +17,8 @@
           src,
           version,
           modDirVersion ? version,
+
+          configfile,
 
           # Handling of QCDT dt.img
           isQcdt ? false,
@@ -65,11 +68,21 @@
 
           # Merge mobile-nixos specific patches with standard kernelPatches
           allPatches = map (p: p.patch) kernelPatches ++ patches;
+        in
+        (manualConfig {
+          inherit
+            src
+            version
+            modDirVersion
+            configfile
+            ;
 
-          kernelDerivation = buildLinux (
+          kernelPatches = map (p: { patch = p; }) allPatches;
+        }).overrideAttrs
+          (
+            prev:
             inputArgs
             // {
-              inherit src version modDirVersion;
               inherit
                 qcdt_dtbs
                 exynos_dtbs
@@ -77,9 +90,7 @@
                 exynos_subtype
                 ;
 
-              patches = allPatches;
-
-              postPatch = maybeString postPatch;
+              postPatch = prev.postPatch + maybeString postPatch;
 
               postInstall = ''
                 echo ":: Mobile NixOS post-install steps"
@@ -87,7 +98,7 @@
               + optionalString hasDTB ''
                 echo ":: Installing DTBs"
                 mkdir -p $out/dtbs/
-                make $makeFlags "''${makeFlagsArray[@]}" dtbs dtbs_install INSTALL_DTBS_PATH=$out/dtbs
+                make "''${makeFlags[@]}" dtbs dtbs_install INSTALL_DTBS_PATH=$out/dtbs
 
               ''
               + optionalString isQcdt ''
@@ -119,7 +130,8 @@
                   $out/dtbo.img \
                   $(find arch/*/boot/dts/ -iname '*.dtbo' | sort)
               ''
-              + maybeString postInstall;
+              + maybeString postInstall
+              + prev.postInstall;
 
               inherit isModular installsFirmware;
 
@@ -138,10 +150,9 @@
 
                   # Used by consumers to refer to the kernel build product.
                   file = kernelFile;
-                };
+                }
+                // prev.passthru;
             }
           );
-        in
-        kernelDerivation;
     };
 }

@@ -23,7 +23,6 @@
           }
           ''
             PS4=" $ "
-            echo Using kernel: $kernel
             (
             set -x
             mkbootimg \

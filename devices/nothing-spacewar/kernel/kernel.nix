@@ -15,6 +15,8 @@
           ./audio.patch
         ];
 
+        configfile = ./config.aarch64;
+
         isModular = true;
         isCompressed = "gz";
       };

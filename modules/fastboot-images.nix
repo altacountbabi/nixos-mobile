@@ -18,11 +18,12 @@
       system.build.fastboot-boot-image =
         let
           cmdline = config.boot.kernelParams |> lib.concatStringsSep " ";
+          inherit (config.specialisation.stage0.configuration.system.build) kernel initialRamdisk;
         in
         self.lib.${localSystem}.bootimg {
           name = "fastboot-boot-image-${device.id}";
-          kernel = "${config.system.build.kernel}/${pkgs.stdenv.hostPlatform.linux-kernel.target}";
-          initrd = "${config.system.build.initialRamdisk}/initrd";
+          kernel = "${kernel}/${pkgs.stdenv.hostPlatform.linux-kernel.target}";
+          initrd = "${initialRamdisk}/initrd";
 
           inherit cmdline;
           inherit (device) bootimg;

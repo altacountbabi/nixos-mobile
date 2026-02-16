@@ -44,33 +44,20 @@
         }
 
         (lib.mkIf device.enable {
-          boot.initrd.kernelModules = [
-            "ufs_qcom"
-          ];
-
           boot.kernelParams = lib.mkAfter [
             "console=ttyMSM0,115200n8"
             "console=tty0"
+            "firmware_class.path=/firmware"
           ];
 
-          hardware.firmware = [
-            (crossPkgs.runCommand "initrd-firmware" { } ''
-              cp -vrf ${config.mobile.device.firmware} $out
-              chmod -R +w $out
-
-              # Big file, fills and breaks stage-1
-              find $out/lib/firmware/qcom/sm7325/ -name "modem.mbn" -type f -delete
-
-              # Copy extra a660 firmware from linux-firmware for the Adreno 642L? see PMOS
-              cp -vf ${pkgs.linux-firmware}/lib/firmware/qcom/{a660_sqe.fw,a660_gmu.bin} $out/lib/firmware/qcom
-
-              # Copy extra ath11k firmware from linux-firmware, see PMOS
-              cp -vrf ${pkgs.linux-firmware}/lib/firmware/ath11k $out/lib/firmware/ath11k
-
-              # Copy extra qca firmware from linux-firmware, see PMOS
-              cp -vrf ${pkgs.linux-firmware}/lib/firmware/qca $out/lib/firmware/qca
-            '')
-          ];
+          boot.initrd.systemd.contents = {
+            # Copy gpu firmware from linux-firmware for the Adreno 642L
+            "/firmware".source = crossPkgs.runCommand "initrd-firmware" { } ''
+              mkdir -p $out/qcom/sm7325/nothing/spacewar
+              cp -vf ${device.firmware}/lib/firmware/qcom/sm7325/nothing/spacewar/a660_zap.mbn $out/qcom/sm7325/nothing/spacewar
+              cp -vf ${pkgs.linux-firmware}/lib/firmware/qcom/{a660_sqe.fw,a660_gmu.bin} $out/qcom
+            '';
+          };
         })
       ];
     };
