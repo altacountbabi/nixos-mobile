@@ -51,10 +51,11 @@
           ];
 
           boot.initrd.systemd.contents = {
+            # TODO: Figure out why battery won't show up in /sys/class/power_supply
             # Copy gpu firmware from linux-firmware for the Adreno 642L
             "/firmware".source = crossPkgs.runCommand "initrd-firmware" { } ''
               mkdir -p $out/qcom/sm7325/nothing/spacewar
-              cp -vf ${device.firmware}/lib/firmware/qcom/sm7325/nothing/spacewar/a660_zap.mbn $out/qcom/sm7325/nothing/spacewar
+              cp -vf ${device.firmware}/lib/firmware/qcom/sm7325/nothing/spacewar/{a660_zap.mbn,adsp.mbn} $out/qcom/sm7325/nothing/spacewar
               cp -vf ${pkgs.linux-firmware}/lib/firmware/qcom/{a660_sqe.fw,a660_gmu.bin} $out/qcom
             '';
           };

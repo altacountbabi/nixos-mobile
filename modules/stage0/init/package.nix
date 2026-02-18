@@ -1,17 +1,15 @@
+{ inputs, ... }:
+
 {
   perSystem =
-    { pkgs, lib, ... }:
+    { pkgs, ... }:
     let
-      inherit (pkgs) rustPlatform;
+      craneLib = inputs.crane.mkLib pkgs;
     in
     {
-      packages.stage0-init = rustPlatform.buildRustPackage {
-        pname = "stage0-init";
-        version = "0.1.0";
-
-        src = lib.cleanSource ./.;
-
-        cargoHash = "sha256-FW9yxqqO4I0k5FPGEvjSizWN7MIuHXrEfNnSHvnO1u8=";
+      packages.stage0-init = craneLib.buildPackage {
+        src = craneLib.cleanCargoSource ./.;
+        strictDeps = true;
 
         meta.mainProgram = "stage0-init";
       };

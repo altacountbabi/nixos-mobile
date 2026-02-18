@@ -1,22 +1,41 @@
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::too_many_lines,
+    clippy::needless_pass_by_value
+)]
+
 use crate::find_closures::find_system_closures;
-use std::{
-    path::PathBuf,
-    process::{Command, ExitStatus},
-};
+use clap::Parser;
+use std::path::PathBuf;
 
 mod find_closures;
 mod ui;
 
+#[derive(Parser)]
+#[command(version, about, long_about = None)]
+struct Args {
+    #[arg(long)]
+    status_bar_config: Option<PathBuf>,
+
+    #[arg(long)]
+    dry_run: bool,
+}
+
 fn main() -> anyhow::Result<()> {
-    let rootfs = PathBuf::from("/sysroot");
+    let args = Args::parse();
+    let rootfs = PathBuf::from(if args.dry_run { "/" } else { "/sysroot" });
 
     let closures = find_system_closures(&rootfs.join("nix/store"))?;
 
-    ui::run(closures)?;
+    ui::run(closures, args)?;
 
     Ok(())
 }
 
-fn cmd<'a>(name: &str, args: impl IntoIterator<Item = &'a str>) -> anyhow::Result<ExitStatus> {
-    Ok(Command::new(name).args(args).spawn()?.wait()?)
+fn cmd(cmd: &str) -> anyhow::Result<std::process::ExitStatus> {
+    Ok(std::process::Command::new("sh")
+        .args(["-c", cmd])
+        .spawn()?
+        .wait()?)
 }

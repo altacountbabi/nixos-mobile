@@ -4,6 +4,16 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-anyhow = "1"
-glob = "0.3.3"
+# CLI/TUI
+clap = { version = "4.5.59", features = ["derive"] }
+ratatui = "0.30.0"
+crossterm = "0.29.0"
+
+# Info
 evdev = "0.13.2"
+sysfs = "0.0.2"
+glob = "0.3.3"
+
+# Other
+anyhow = { version = "1.0.101", features = ["backtrace"] }
+serde_json = "1.0.149"
