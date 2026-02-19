@@ -1,6 +1,6 @@
 {
   perSystem =
-    { pkgs, ... }:
+    { pkgs, lib, ... }:
     {
       packages.dtbtool =
         let
@@ -52,7 +52,18 @@
             wrapPythonPrograms
           '';
 
-          # TODO meta url : https://source.codeaurora.org/quic/kernel/skales/plain/dtbTool
+          meta = with lib; {
+            homepage = "https://source.codeaurora.org/quic/kernel/skales/plain/dtbTool";
+            description = "Tool for compiling device tree blobs (dtb)";
+            license = licenses.bsd3;
+            platforms = platforms.unix;
+            mainProgram = "dtbTool";
+            longDescription = ''
+              dtbTool is a utility for compiling device tree blobs (dtb) used in 
+              Linux kernel device tree management, particularly for embedded systems 
+              and mobile devices.
+            '';
+          };
         };
     };
 }
