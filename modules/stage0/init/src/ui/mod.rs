@@ -1,4 +1,4 @@
-use crate::{Args, cmd, find_closures::SystemClosure, ui::input::InputEvent};
+use crate::{Args, find_closures::SystemClosure, kexec::kexec, ui::input::InputEvent};
 use anyhow::anyhow;
 use crossterm::{
     execute,
@@ -76,13 +76,11 @@ pub fn run(closures: Vec<SystemClosure>, args: Args) -> anyhow::Result<()> {
 
     if let Some(closure) = selected_closure {
         if args.dry_run {
-            println!("Dry run: would boot {}", closure.name);
-        } else {
-            println!("Booting {}...", closure.name);
+            println!("Dry run: would boot {}", closure.label);
+            return Ok(());
         }
 
-        // TODO: Kexec here, poweroff for debugging
-        cmd("poweroff")?;
+        kexec(closure)?;
     }
     Ok(())
 }
@@ -189,7 +187,7 @@ fn generation_list(
     closures: &[SystemClosure],
     list_state: &mut ListState,
 ) {
-    let max_item_width = closures.iter().map(|c| c.name.len()).max().unwrap_or(0) as u16;
+    let max_item_width = closures.iter().map(|c| c.label.len()).max().unwrap_or(0) as u16;
     let list_width = (max_item_width + 4).min(area.width);
 
     let num_items = closures.len() as u16;
@@ -225,8 +223,9 @@ fn generation_list(
 
     let items: Vec<ListItem> = closures
         .iter()
-        .map(|c| ListItem::new(c.name.clone()))
+        .map(|c| ListItem::new(c.label.clone()))
         .collect();
+
     let list = List::new(items)
         .highlight_style(
             Style::default()

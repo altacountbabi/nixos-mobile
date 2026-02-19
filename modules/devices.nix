@@ -124,7 +124,7 @@
             includeDefaultModules = false;
           };
 
-          # Set up 32x64 font
+          # Set up 16x32 font
           console = {
             earlySetup = true;
             font = "spleen-16x32";
