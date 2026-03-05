@@ -1,4 +1,4 @@
-use crate::{Args, find_closures::SystemClosure, kexec::kexec, ui::input::InputEvent};
+use crate::{Args, find_systems::SystemClosure, kexec::kexec, ui::input::InputEvent};
 use anyhow::anyhow;
 use crossterm::{
     execute,

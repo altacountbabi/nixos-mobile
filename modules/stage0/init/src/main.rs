@@ -6,11 +6,11 @@
     clippy::similar_names
 )]
 
-use crate::find_closures::find_system_closures;
+use crate::find_systems::find_systems;
 use clap::Parser;
 use std::{path::PathBuf, sync::OnceLock};
 
-mod find_closures;
+mod find_systems;
 mod kexec;
 mod ui;
 
@@ -35,7 +35,7 @@ fn main() -> anyhow::Result<()> {
 
     ROOTFS.get_or_init(|| PathBuf::from(if args.dry_run { "/" } else { "/sysroot" }));
 
-    let closures = find_system_closures()?;
+    let closures = find_systems()?;
 
     ui::run(closures, args)?;
 

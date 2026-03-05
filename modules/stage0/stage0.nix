@@ -65,6 +65,8 @@
         ];
 
         specialisation.stage0.configuration = {
+          system.nixos.label = "stage0";
+
           boot.initrd.systemd =
             let
               stage0-init = lib.getExe self.packages.${config.mobile.localSystem}.stage0-init;
@@ -72,7 +74,10 @@
                 config.mobile.stage0.statusBarLayout |> (pkgs.formats.json { }).generate "status-bar-layout.json";
             in
             {
-              storePaths = [ stage0-init ];
+              storePaths = [
+                stage0-init
+                pkgs.kexec-tools
+              ];
               services = {
                 initrd-find-nixos-closure.enable = false;
                 initrd-nixos-activation.enable = false;
@@ -91,6 +96,7 @@
                   ];
                   conflicts = [ "shutdown.target" ];
                   requiredBy = [ "initrd.target" ];
+                  path = [ pkgs.kexec-tools ];
                   serviceConfig = {
                     Type = "oneshot";
                     ExecStart = "${stage0-init} --status-bar-config ${statusBarLayout}";

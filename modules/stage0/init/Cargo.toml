@@ -21,3 +21,4 @@ glob = "0.3.3"
 
 # Other
 anyhow = { version = "1.0.101", features = ["backtrace"] }
+tap = "1.0.1"

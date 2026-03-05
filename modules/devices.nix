@@ -67,7 +67,6 @@
 
           flashing.steps = mkOption {
             type = with types; listOf str;
-            default = [ ];
             description = "Sequential steps to take with fastboot";
           };
         };

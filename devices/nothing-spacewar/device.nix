@@ -33,7 +33,7 @@
               dtb = "${config.system.build.kernel}/dtbs/qcom/sm7325-nothing-spacewar.dtb";
             };
 
-            flashing.steps = lib.mkForce [
+            flashing.steps = [
               "flash boot_a boot.img"
               "flash userdata system.img"
               "erase dtbo"
@@ -44,6 +44,11 @@
         }
 
         (lib.mkIf device.enable {
+          mobile.boot-control.enable = true;
+
+          # Device doesn't use RTC
+          systemd.services.save-hwclock.enable = false;
+
           boot.kernelParams = lib.mkAfter [
             "console=ttyMSM0,115200n8"
             "console=tty0"

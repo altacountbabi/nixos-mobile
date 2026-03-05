@@ -1,38 +1,37 @@
-use crate::find_closures::SystemClosure;
+use crate::find_systems::SystemClosure;
 use anyhow::Context;
-use nix::{
-    errno::Errno,
-    libc::{SYS_kexec_file_load, syscall},
-    sys::reboot::{RebootMode, reboot},
-};
-use std::{ffi::CString, fs::File, os::fd::AsRawFd};
+use std::process::Command;
 
 pub fn kexec(closure: SystemClosure) -> anyhow::Result<()> {
-    let kernel = File::open(closure.kernel).context("load kernel")?;
-    let initrd = File::open(closure.initrd).context("load initrd")?;
-    let cmdline = {
-        let mut params = closure.kernel_params.clone();
-        params.push(format!("init={}", closure.init.display()));
-        let cmdline = params.join(" ");
-        CString::new(cmdline)?
-    };
+    let mut cmd = Command::new("kexec");
 
-    let ret = unsafe {
-        syscall(
-            SYS_kexec_file_load,
-            kernel.as_raw_fd(),
-            initrd.as_raw_fd(),
-            cmdline.as_bytes_with_nul().len(),
-            cmdline.as_ptr(),
-            0,
-        )
-    };
+    // Build the complete command line
+    let mut cmdline_parts = closure.kernel_params.clone();
+    cmdline_parts.push(format!("init={}", closure.init.display()));
+    let cmdline = cmdline_parts.join(" ");
 
-    if ret < 0 {
-        return Err(anyhow::Error::from(Errno::last()).context("kexec load kernel"));
+    // Add kernel with all parameters
+    cmd.arg("-l")
+        .arg(&closure.kernel)
+        .arg("--initrd")
+        .arg(&closure.initrd)
+        .arg("--command-line")
+        .arg(cmdline);
+
+    let output = cmd.output().context("failed to execute kexec-tools")?;
+
+    if !output.status.success() {
+        return Err(anyhow::anyhow!(
+            "kexec-tools load failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
     }
 
-    reboot(RebootMode::RB_KEXEC)?;
+    // Execute the loaded kernel
+    Command::new("kexec")
+        .arg("-e")
+        .output()
+        .context("failed to execute kexec -e")?;
 
     Ok(())
 }
